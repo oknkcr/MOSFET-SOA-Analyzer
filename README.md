@@ -14,7 +14,7 @@ Hiçbir şey yüklemenize gerek yok.
 git clone https://github.com/kullaniciadi/mosfet-soa-analyzer.git
 
 # Dosyayı tarayıcıda aç
-open mosfet_soa_analyzer.html
+open index.html
 ```
 
 Veya doğrudan [GitHub Pages](https://oknkcr.github.io/MOSFET-SOA-Analyzer/) üzerinden kullanın.
