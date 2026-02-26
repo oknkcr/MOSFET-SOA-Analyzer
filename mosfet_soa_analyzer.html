@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOSFET SOA Analyzer v8</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+:root{
+  --bg:#07090f;--panel:#0c1018;--border:#1a2535;
+  --a:#00d4ff;--a2:#ff6b35;--a3:#39ff14;--a4:#ff00cc;--a5:#ffcc00;
+  --text:#c8d8e8;--dim:#3a5570;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+header{border-bottom:1px solid var(--border);padding:7px 16px;display:flex;align-items:center;gap:12px;background:var(--panel);flex-shrink:0;}
+.logo{font-family:'Share Tech Mono',monospace;font-size:15px;color:var(--a);letter-spacing:3px;text-shadow:0 0 12px rgba(0,212,255,.4);}
+.sub{font-size:8px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+
+.work{display:flex;flex:1;min-height:0;}
+
+.sb{width:295px;border-right:1px solid var(--border);background:var(--panel);overflow-y:auto;flex-shrink:0;}
+.sbs{padding:9px 11px;border-bottom:1px solid var(--border);}
+.st{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--a);text-transform:uppercase;margin-bottom:6px;}
+
+.lbl{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:2px;}
+input[type=number],input[type=text],select{background:#040608;border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;padding:4px 6px;border-radius:3px;width:100%;transition:border-color .2s;}
+input:focus,select:focus{outline:none;border-color:var(--a);}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.fr{margin-bottom:5px;}
+
+.btn{padding:5px 9px;border:none;border-radius:3px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;transition:all .2s;width:100%;}
+.bp{background:var(--a);color:#000;}.bp:hover{background:#33e0ff;box-shadow:0 0 10px rgba(0,212,255,.4);}
+.bs{background:transparent;border:1px solid var(--a2);color:var(--a2);}.bs:hover{background:rgba(255,107,53,.1);}
+.bg{background:var(--a3);color:#000;}.bg:hover{box-shadow:0 0 10px rgba(57,255,20,.4);}
+.bw{background:transparent;border:1px solid var(--dim);color:var(--dim);}.bw:hover{border-color:var(--text);color:var(--text);}
+.bpur{background:transparent;border:1px solid var(--a4);color:var(--a4);}.bpur:hover{background:rgba(255,0,204,.1);}
+.by{background:transparent;border:1px solid var(--a5);color:var(--a5);}.by:hover{background:rgba(255,204,0,.1);}
+
+.cl{display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto;}
+.ci{display:flex;align-items:center;gap:4px;padding:3px 6px;background:#040608;border:1px solid var(--border);border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:9px;}
+.cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ci .x{margin-left:auto;cursor:pointer;color:var(--dim);font-size:11px;}.ci .x:hover{color:#f44;}
+
+.cstep{display:flex;align-items:center;gap:5px;padding:3px 6px;background:#040608;border:1px solid var(--border);border-radius:3px;font-size:9px;font-family:'Share Tech Mono',monospace;}
+.cstep.done{border-color:rgba(57,255,20,.3);}.cstep.active{border-color:rgba(0,212,255,.5);}
+.cindic{width:7px;height:7px;border-radius:50%;border:1px solid var(--dim);flex-shrink:0;}
+.cstep.done .cindic{background:var(--a3);border-color:var(--a3);}
+.cstep.active .cindic{background:var(--a);border-color:var(--a);animation:blk .8s infinite;}
+@keyframes blk{0%,100%{opacity:1}50%{opacity:.3}}
+
+.info{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.15);border-radius:4px;padding:6px;font-size:9px;color:var(--dim);line-height:1.6;}
+.info b{color:var(--a);}
+.rbox{border-radius:4px;padding:7px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.8;margin-top:5px;}
+.rbox-g{background:rgba(57,255,20,.05);border:1px solid rgba(57,255,20,.2);color:var(--a3);}
+.mode-pill{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 7px;border-radius:10px;margin-bottom:5px;}
+.mc2{background:rgba(0,212,255,.1);border:1px solid var(--a);color:var(--a);}
+.mt2{background:rgba(255,0,204,.1);border:1px solid var(--a4);color:var(--a4);}
+.mi2{background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.4);color:var(--a3);}
+.mp2{background:rgba(255,107,53,.1);border:1px solid var(--a2);color:var(--a2);}
+.formula-box{background:#040608;border:1px solid var(--border);border-radius:4px;padding:7px;font-family:'Share Tech Mono',monospace;font-size:9px;color:#8aaabb;line-height:1.9;margin-top:5px;}
+.formula-box .hi{color:var(--a5);}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* ── CANVAS AREA ── */
+.ca{flex:1;display:flex;flex-direction:column;min-width:0;}
+.tb{padding:6px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:var(--panel);flex-shrink:0;}
+.pill{font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 8px;border-radius:10px;border:1px solid var(--a3);color:var(--a3);}
+.dbadge{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);color:var(--a2);font-family:'Share Tech Mono',monospace;font-size:8px;padding:2px 8px;border-radius:3px;}
+.tg{display:flex;gap:3px;}
+.tgb{padding:2px 8px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:8px;cursor:pointer;border-radius:2px;transition:all .2s;}
+.tgb.on{border-color:var(--a);color:var(--a);background:rgba(0,212,255,.08);}
+
+/* ── STICKY COORD BAR ── */
+.coord-sticky{
+  background:rgba(0,10,18,.92);
+  border-bottom:1px solid rgba(0,212,255,.2);
+  padding:5px 14px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px;
+  flex-shrink:0;
+  min-height:30px;
+  letter-spacing:1px;
+}
+.cs-item{display:flex;align-items:center;gap:6px;}
+.cs-label{color:var(--dim);font-size:9px;}
+.cs-val{color:var(--a);font-size:13px;font-weight:700;min-width:80px;}
+.cs-sep{color:var(--border);font-size:16px;}
+.cs-mode{margin-left:auto;font-size:8px;color:var(--a5);}
+
+.cw{flex:1;position:relative;overflow:hidden;background:#030507;cursor:crosshair;}
+#MC{display:block;position:absolute;inset:0;}
+#OC{position:absolute;inset:0;pointer-events:none;}
+#CC{position:absolute;inset:0;pointer-events:none;}
+
+.leg{position:absolute;top:10px;right:10px;background:rgba(3,5,7,.93);border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-family:'Share Tech Mono',monospace;font-size:8px;max-width:195px;pointer-events:none;z-index:10;}
+.li{display:flex;align-items:center;gap:5px;margin:2px 0;}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:300;display:flex;align-items:center;justify-content:center;}
+.mbox{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:20px;max-width:380px;width:90%;}
+.mbox h2{font-family:'Share Tech Mono',monospace;color:var(--a);font-size:12px;margin-bottom:7px;}
+.mbox p{font-size:10px;color:var(--dim);line-height:1.6;margin-bottom:4px;}
+.mbtns{display:flex;gap:5px;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div><div class="logo">SOA ANALYZER</div><div class="sub">Pin Markers · Sticky Coord Bar · Power-Law Interp · Thermal Derating</div></div>
+  <div style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);text-align:right">v8.0<br><span id="ts" style="color:var(--a)">READY</span></div>
+</header>
+
+<div class="work">
+
+<!-- ══ SIDEBAR ══ -->
+<div class="sb">
+
+<!-- 1. Upload -->
+<div class="sbs">
+  <div class="st">📂 1. Grafik Yükle</div>
+  <div style="border:2px dashed var(--border);border-radius:4px;padding:10px;text-align:center;cursor:pointer;position:relative;" id="uz"
+    ondragover="event.preventDefault();this.style.borderColor='var(--a)'"
+    ondragleave="this.style.borderColor=''"
+    ondrop="handleDrop(event)">
+    <input type="file" id="fi" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+    <div style="font-size:18px;color:var(--dim)">⬆</div>
+    <div style="font-size:8px;color:var(--dim)">PNG / JPG sürükle veya tıkla</div>
+  </div>
+  <div id="imgSt" style="margin-top:3px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim)"></div>
+</div>
+
+<!-- 2. Calibrate -->
+<div class="sbs">
+  <div class="st">🎯 2. Eksen Kalibrasyonu</div>
+  <div id="calPill" class="mode-pill mi2">● HAZIR</div>
+  <div class="info" style="margin-bottom:6px">4 köşeyi tıkla → gerçek Vds / Id değerini gir.</div>
+  <button class="btn bs" style="font-size:10px;padding:4px 8px;margin-bottom:5px" onclick="startCal()">⊕ Kalibrasyonu Başlat</button>
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <div class="cstep" id="cp0"><div class="cindic"></div><span>Sol-Alt Vds_min Id_min</span><span style="margin-left:auto;font-size:7px" id="cv0">—</span></div>
+    <div class="cstep" id="cp1"><div class="cindic"></div><span>Sol-Üst Vds_min Id_max</span><span style="margin-left:auto;font-size:7px" id="cv1">—</span></div>
+    <div class="cstep" id="cp2"><div class="cindic"></div><span>Sağ-Alt Vds_max Id_min</span><span style="margin-left:auto;font-size:7px" id="cv2">—</span></div>
+    <div class="cstep" id="cp3"><div class="cindic"></div><span>Sağ-Üst Vds_max Id_max</span><span style="margin-left:auto;font-size:7px" id="cv3">—</span></div>
+  </div>
+  <button class="btn bw" style="font-size:9px;padding:3px 7px;margin-top:5px" onclick="resetAll()">↺ Tümünü Sıfırla</button>
+</div>
+
+<!-- 3. Trace -->
+<div class="sbs">
+  <div class="st">✏️ 3. Eğri İşaretleme</div>
+  <div id="tracePill" class="mode-pill mi2">● HAZIR</div>
+  <div class="r2" style="margin-bottom:4px">
+    <div class="fr"><label class="lbl">Eğri Adı</label><input type="text" id="trName" value="10ms"></div>
+    <div class="fr"><label class="lbl">Renk</label><input type="color" id="trColor" value="#ff6b35" style="height:24px;border-radius:3px;border:none;cursor:pointer;width:100%;background:none;"></div>
+  </div>
+  <div style="display:flex;gap:3px;margin-bottom:4px">
+    <button class="btn bpur" style="font-size:10px;padding:4px" onclick="startTrace()">⊕ İşaretle</button>
+    <button class="btn bp" style="font-size:10px;padding:4px" onclick="finishTrace()">✓ Tamamla</button>
+    <button class="btn bw" style="font-size:10px;padding:4px;width:auto;flex:0 0 28px" onclick="cancelTrace()">✕</button>
+  </div>
+  <div id="trcSt" style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-bottom:4px">0 nokta</div>
+  <div class="cl" id="traceList"></div>
+</div>
+
+<!-- 4. PIN MARKERS -->
+<div class="sbs">
+  <div class="st">📍 4. Nokta İşaretleme</div>
+  <div id="pinPill" class="mode-pill mi2">● HAZIR</div>
+  <div class="info" style="margin-bottom:6px">
+    "Nokta Ekle" modunu aç → grafikte istediğin yere tıkla.<br>
+    Her noktaya <b>Vds ve IDS otomatik</b> yazılır.<br>
+    Opsiyonel: özel etiket ekle.
+  </div>
+  <div class="r2" style="margin-bottom:5px">
+    <div class="fr"><label class="lbl">Renk</label>
+      <input type="color" id="pinColor" value="#ffcc00" style="height:24px;border-radius:3px;border:none;cursor:pointer;width:100%;background:none;"></div>
+    <div class="fr"><label class="lbl">Sembol</label>
+      <select id="pinSymbol">
+        <option value="circle">● Daire</option>
+        <option value="cross">✕ Çarpı</option>
+        <option value="diamond">◆ Baklava</option>
+        <option value="arrow">▼ Ok</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr"><label class="lbl">Ek Etiket (opsiyonel)</label>
+    <input type="text" id="pinLabel" placeholder="ör: OP nokta, Max, ...">
+  </div>
+  <div class="fr"><label class="lbl">
+    <input type="checkbox" id="pinShowCoords" checked style="width:auto"> Vds/IDS değerlerini göster
+  </label></div>
+  <div class="fr"><label class="lbl">
+    <input type="checkbox" id="pinShowLines" checked style="width:auto"> Eksen çizgileri
+  </label></div>
+  <div style="display:flex;gap:4px;margin-bottom:5px">
+    <button class="btn bs" style="font-size:10px;padding:4px;flex:1" onclick="startPin()">⊕ Nokta Ekle Modu</button>
+    <button class="btn bw" style="font-size:10px;padding:4px;width:auto;flex:0 0 28px" onclick="cancelPin()">✕</button>
+  </div>
+  <!-- Pin list -->
+  <div class="cl" id="pinList" style="max-height:120px"></div>
+  <button class="btn bw" style="font-size:9px;padding:3px 7px;margin-top:5px" onclick="clearAllPins()">🗑 Tüm Noktaları Sil</button>
+</div>
+
+<!-- 5. Free Text -->
+<div class="sbs">
+  <div class="st">✍️ 5. Serbest Yazı</div>
+  <div class="info" style="margin-bottom:6px">Grafiğe istediğin konuma metin ekle.</div>
+  <div class="fr"><label class="lbl">Metin</label>
+    <input type="text" id="annotText" value="Not:" placeholder="Yazı içeriği..."></div>
+  <div class="r3">
+    <div class="fr"><label class="lbl">Boyut</label><input type="number" id="annotSize" value="12" min="8" max="40"></div>
+    <div class="fr"><label class="lbl">Renk</label><input type="color" id="annotColor" value="#ffffff" style="height:24px;border-radius:3px;border:none;cursor:pointer;width:100%;background:none;"></div>
+    <div class="fr"><label class="lbl">Açı°</label><input type="number" id="annotAngle" value="0" min="-180" max="180"></div>
+  </div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="annotBox" style="width:auto"> Arka plan kutu</label></div>
+  <div style="display:flex;gap:3px;margin-bottom:5px">
+    <button class="btn by" style="font-size:10px;padding:4px;flex:1" onclick="startAnnot()">⊕ Metin Ekle Modu</button>
+    <button class="btn bw" style="font-size:10px;padding:4px;width:auto;flex:0 0 28px" onclick="cancelAnnot()">✕</button>
+  </div>
+  <div class="cl" id="annotList" style="max-height:80px"></div>
+</div>
+
+<!-- 6. Pulse Interpolation -->
+<div class="sbs">
+  <div class="st">⚡ 6. Pulse Width İnterpolasyon</div>
+  <div class="info" style="margin-bottom:5px"><b>IDS(tPW) = a × (tPW)^m</b></div>
+  <div style="background:#040608;border:1px solid var(--border);border-radius:4px;padding:7px;margin-bottom:5px">
+    <div class="st" style="margin-bottom:4px;color:var(--a5)">Referans (aynı VDS)</div>
+    <div class="fr"><label class="lbl">VDS (V)</label><input type="number" id="refVds" value="12" min="0.01" step="0.1"></div>
+    <div class="r2">
+      <div><div class="fr"><label class="lbl">tPW1 (ms)</label><input type="number" id="tpw1" value="10" step="0.1"></div>
+           <div class="fr"><label class="lbl">IDS1 (A)</label><input type="number" id="ids1" value="7.3" step="0.01"></div></div>
+      <div><div class="fr"><label class="lbl">tPW2 (ms)</label><input type="number" id="tpw2" value="100" step="0.1"></div>
+           <div class="fr"><label class="lbl">IDS2 (A)</label><input type="number" id="ids2" value="4.1" step="0.01"></div></div>
+    </div>
+    <button class="btn by" style="font-size:10px;padding:4px" onclick="calcInterp()">⟳ m ve a Hesapla</button>
+    <div class="formula-box" id="maBox">m ve a hesaplanmadı</div>
+  </div>
+  <div style="background:#040608;border:1px solid var(--border);border-radius:4px;padding:7px">
+    <div class="fr"><label class="lbl">Süreler (ms, virgülle)</label>
+      <input type="text" id="targetPWs" value="1, 5, 20, 50, 200, 500"></div>
+    <button class="btn bp" style="font-size:10px;padding:4px" onclick="calcAllPWs()">▶ Hesapla &amp; Çiz</button>
+    <div id="pwResultBox" style="margin-top:5px"></div>
+  </div>
+</div>
+
+<!-- 7. Thermal Derating -->
+<div class="sbs">
+  <div class="st">🌡 7. Termal Derating</div>
+  <div class="info" style="margin-bottom:5px"><b>IDS(Tc) = IDS(25°C) × (TJ_max − Tc) / (TJ_max − 25°C)</b></div>
+  <div class="r2">
+    <div class="fr"><label class="lbl">TJ(max) °C</label><input type="number" id="tjMax" value="150"></div>
+    <div class="fr"><label class="lbl">Tc (°C)</label><input type="number" id="tc" value="100"></div>
+  </div>
+  <div class="rbox rbox-g" id="derBox">DF = ?</div>
+</div>
+
+<!-- 8. Display -->
+<div class="sbs">
+  <div class="st">👁 8. Görünüm</div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkImg" checked style="width:auto"> Görseli göster</label></div>
+  <div class="fr"><label class="lbl">Opaklık %</label><input type="number" id="imgOp" value="100" min="10" max="100" step="5"></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkRef" checked style="width:auto"> Referans (25°C)</label></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkDer" checked style="width:auto"> Derated (Tc)</label></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkInterp" checked style="width:auto"> İnterpolasyon</label></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkGrid" style="width:auto"> Log-Log grid (sayılı)</label></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkPins" checked style="width:auto"> Nokta işaretleri</label></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkAnnot" checked style="width:auto"> Serbest yazılar</label></div>
+  <div class="fr"><label class="lbl"><input type="checkbox" id="chkCross" checked style="width:auto"> Cursor crosshair</label></div>
+</div>
+
+<!-- 9. Style Settings -->
+<div class="sbs">
+  <div class="st">🎨 9. Çizgi & Yazı Stilleri</div>
+
+  <div style="background:#040608;border:1px solid var(--border);border-radius:4px;padding:7px;margin-bottom:6px">
+    <div class="st" style="margin-bottom:5px;color:var(--a5)">Eğri Kalınlıkları</div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">Ref eğri (px)</label>
+        <input type="number" id="lwRef" value="2.5" min="0.5" max="10" step="0.5"></div>
+      <div class="fr"><label class="lbl">Derated (px)</label>
+        <input type="number" id="lwDer" value="2" min="0.5" max="10" step="0.5"></div>
+    </div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">İnterp. (px)</label>
+        <input type="number" id="lwInterp" value="1" min="0.5" max="8" step="0.5"></div>
+      <div class="fr"><label class="lbl">Grid major (px)</label>
+        <input type="number" id="lwGridMajor" value="1" min="0.5" max="5" step="0.5"></div>
+    </div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">Grid minor (px)</label>
+        <input type="number" id="lwGridMinor" value="0.5" min="0.3" max="3" step="0.5"></div>
+      <div class="fr"><label class="lbl">Pin çizgi (px)</label>
+        <input type="number" id="lwPin" value="1" min="0.5" max="5" step="0.5"></div>
+    </div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">Crosshair (px)</label>
+        <input type="number" id="lwCross" value="1" min="0.5" max="4" step="0.5"></div>
+      <div class="fr"><label class="lbl">Eğri glow</label>
+        <input type="number" id="curveGlow" value="7" min="0" max="30" step="1"></div>
+    </div>
+  </div>
+
+  <div style="background:#040608;border:1px solid var(--border);border-radius:4px;padding:7px;margin-bottom:6px">
+    <div class="st" style="margin-bottom:5px;color:var(--a5)">Yazı Boyutları (px)</div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">Grid etiket</label>
+        <input type="number" id="fsGrid" value="10" min="6" max="22" step="1"></div>
+      <div class="fr"><label class="lbl">Pin etiket</label>
+        <input type="number" id="fsPin" value="10" min="6" max="22" step="1"></div>
+    </div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">İnterp. etiket</label>
+        <input type="number" id="fsInterp" value="9" min="6" max="22" step="1"></div>
+      <div class="fr"><label class="lbl">Crosshair etiket</label>
+        <input type="number" id="fsCross" value="10" min="6" max="22" step="1"></div>
+    </div>
+    <div class="r2">
+      <div class="fr"><label class="lbl">Grid renk</label>
+        <input type="color" id="gridColor" value="#64aad2" style="height:24px;border-radius:3px;border:none;cursor:pointer;width:100%;background:none;"></div>
+      <div class="fr"><label class="lbl">Grid opaklık %</label>
+        <input type="number" id="gridOpacity" value="90" min="10" max="100" step="5"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:4px">
+    <button class="btn bp" style="font-size:10px;padding:4px" onclick="render()">✓ Uygula</button>
+    <button class="btn bw" style="font-size:10px;padding:4px" onclick="resetStyles()">↺ Varsayılan</button>
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="sbs">
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <button class="btn bp" onclick="render()">▶ GRAFİĞİ GÜNCELLE</button>
+    <button class="btn bg" onclick="downloadPNG()">⬇ PNG İNDİR</button>
+  </div>
+</div>
+
+</div><!-- sb -->
+
+<!-- ══ CANVAS AREA ══ -->
+<div class="ca">
+  <div class="tb">
+    <div class="pill" id="stPill">● BEKLENIYOR</div>
+    <div class="dbadge" id="dbadge">DF = ?</div>
+    <div class="tg">
+      <button class="tgb on" onclick="setView('both')">Tümü</button>
+      <button class="tgb" onclick="setView('ref')">Referans</button>
+      <button class="tgb" onclick="setView('der')">Derated</button>
+    </div>
+    <div style="margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim)" id="instruct">← Görsel yükle → Kalibre et</div>
+  </div>
+
+  <!-- ★ STICKY COORD BAR ★ -->
+  <div class="coord-sticky" id="coordSticky">
+    <div class="cs-item">
+      <span class="cs-label">VDS</span>
+      <span class="cs-val" id="csVds">— V</span>
+    </div>
+    <div class="cs-sep">|</div>
+    <div class="cs-item">
+      <span class="cs-label">IDS</span>
+      <span class="cs-val" id="csIds">— A</span>
+    </div>
+    <div class="cs-sep">|</div>
+    <div class="cs-item">
+      <span class="cs-label">P</span>
+      <span class="cs-val" id="csPwr" style="color:var(--a5)">— W</span>
+    </div>
+    <div class="cs-sep" id="csSep2" style="display:none">|</div>
+    <div class="cs-item" id="csExtra" style="display:none">
+      <span class="cs-label" id="csExLabel">ΔV</span>
+      <span class="cs-val" id="csExVal" style="color:var(--a3)">—</span>
+    </div>
+    <div class="cs-mode" id="csMode">NAVIGATION</div>
+  </div>
+
+  <div class="cw" id="cw">
+    <canvas id="MC"></canvas>
+    <canvas id="OC"></canvas>
+    <canvas id="CC"></canvas>
+    <div class="leg"><div id="legItems"></div></div>
+  </div>
+</div>
+
+</div><!-- work -->
+
+<!-- Modal -->
+<div class="modal" id="modal" style="display:none">
+  <div class="mbox">
+    <h2 id="mT">Nokta</h2>
+    <p id="mD"></p>
+    <div class="r2" style="margin-top:8px">
+      <div class="fr"><label class="lbl" id="mL1">Vds (V)</label><input type="number" id="mV1" step="any"></div>
+      <div class="fr"><label class="lbl" id="mL2">Id (A)</label><input type="number" id="mV2" step="any"></div>
+    </div>
+    <div class="mbtns">
+      <button class="btn bp" onclick="confirmM()">✓ Onayla</button>
+      <button class="btn bw" style="width:auto;padding:5px 12px" onclick="closeM()">İptal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+const MC  = document.getElementById('MC');
+const ctx = MC.getContext('2d');
+const OC  = document.getElementById('OC');
+const ovl = OC.getContext('2d');
+const CC  = document.getElementById('CC');
+const cur = CC.getContext('2d');
+const cw  = document.getElementById('cw');
+
+let img=null, viewMode='both';
+let calMode=false, calStep=0, calPts=[], calT=null, calibrated=false;
+let traceMode=false, curPts=[], savedTraces=[];
+let pinMode=false, pins=[];          // ← PIN MARKERS
+let annotMode=false, annotations=[];
+let interpCurves=[], interpParams={m:null,a:null};
+let modalCb=null;
+let mouseX=0, mouseY=0;
+
+const CAL_LABS=['Sol-Alt (Vds_min,Id_min)','Sol-Üst (Vds_min,Id_max)','Sağ-Alt (Vds_max,Id_min)','Sağ-Üst (Vds_max,Id_max)'];
+const CAL_DEFS=[[0.01,0.001],[0.01,100],[100,0.001],[100,100]];
+const CAL_COLS=['#ff6b35','#00d4ff','#39ff14','#ff00ff'];
+const ICOLS=['#ffcc00','#ff88cc','#88ffaa','#aaaaff','#ff8844','#44ffff','#ff4488','#88ff44','#ccaaff','#ffaaaa'];
+
+// ════ STYLE GETTERS ═════════════════════════════════════════════
+function gN(id,def){const v=parseFloat(document.getElementById(id).value);return isNaN(v)?def:v;}
+function gC(id){return document.getElementById(id).value||'#64aad2';}
+const STYLE_DEFAULTS={lwRef:2.5,lwDer:2,lwInterp:1,lwGridMajor:1,lwGridMinor:0.5,lwPin:1,lwCross:1,curveGlow:7,fsGrid:10,fsPin:10,fsInterp:9,fsCross:10,gridColor:'#64aad2',gridOpacity:90};
+function resetStyles(){
+  Object.entries(STYLE_DEFAULTS).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
+  render();
+}
+
+// ════ RESIZE ════════════════════════════════════════════════════
+function resize(){
+  const W=cw.clientWidth,H=cw.clientHeight;
+  MC.width=OC.width=CC.width=W;
+  MC.height=OC.height=CC.height=H;
+  render();
+}
+window.addEventListener('resize',resize);
+
+// ════ UPLOAD ════════════════════════════════════════════════════
+document.getElementById('fi').addEventListener('change',e=>loadFile(e.target.files[0]));
+function handleDrop(e){e.preventDefault();document.getElementById('uz').style.borderColor='';loadFile(e.dataTransfer.files[0]);}
+function loadFile(f){
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{const i=new Image();i.onload=()=>{img=i;document.getElementById('imgSt').textContent=`✓ ${f.name} (${i.width}×${i.height})`;render();};i.src=ev.target.result;};
+  r.readAsDataURL(f);
+}
+
+// ════ CALIBRATION ═══════════════════════════════════════════════
+function startCal(){
+  if(!img){alert('Önce grafik yükle!');return;}
+  calMode=true;calStep=0;calPts=[];calibrated=false;calT=null;
+  traceMode=false;pinMode=false;annotMode=false;curPts=[];
+  cw.style.cursor='crosshair';
+  updateCalUI();setPill('calPill','● KALİBRASYON','mc2');
+  setInst('⬆ Sol-Alt köşeyi tıkla');
+  setMode('KALİBRASYON');
+}
+function resetAll(){
+  calMode=false;calStep=0;calPts=[];calibrated=false;calT=null;
+  traceMode=false;curPts=[];savedTraces=[];
+  pinMode=false;pins=[];
+  annotMode=false;annotations=[];
+  interpCurves=[];interpParams={m:null,a:null};
+  cw.style.cursor='crosshair';
+  updateCalUI();updateTrList();updatePinList();updateAnnotList();
+  drawOvl();drawCursorCvs(0,0,false);render();
+  ['calPill','tracePill','pinPill'].forEach(id=>setPill(id,'● HAZIR','mi2'));
+  setMode('NAVIGATION');
+}
+function updateCalUI(){
+  [0,1,2,3].forEach(i=>{
+    const el=document.getElementById('cp'+i),vl=document.getElementById('cv'+i);
+    el.className='cstep';
+    if(calPts[i]){el.classList.add('done');vl.textContent=`${calPts[i].vds}V ${calPts[i].id}A`;}
+    else if(calMode&&i===calStep){el.classList.add('active');vl.textContent='← tıkla';}
+    else vl.textContent='—';
+  });
+}
+function computeCalT(){
+  function lsq(xs,ys){
+    const n=xs.length,mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n;
+    let num=0,den=0;for(let i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);den+=(xs[i]-mx)**2;}
+    const s=den?num/den:0;return{s,b:my-s*mx};
+  }
+  const fx=lsq(calPts.map(p=>p.px),calPts.map(p=>Math.log10(p.vds)));
+  const fy=lsq(calPts.map(p=>p.py),calPts.map(p=>Math.log10(p.id)));
+  calT={sx:fx.s,bx:fx.b,sy:fy.s,by:fy.b};
+}
+function px2r(px,py){if(!calT)return null;return{vds:Math.pow(10,calT.sx*px+calT.bx),id:Math.pow(10,calT.sy*py+calT.by)};}
+function r2px(vds,id){if(!calT)return null;return{px:(Math.log10(vds)-calT.bx)/calT.sx,py:(Math.log10(id)-calT.by)/calT.sy};}
+
+// ════ PIN MODE ══════════════════════════════════════════════════
+function startPin(){
+  if(!calibrated){alert('Önce kalibrasyonu tamamla!');return;}
+  pinMode=true;traceMode=false;annotMode=false;calMode=false;
+  cw.style.cursor='cell';
+  setPill('pinPill','● NOKTA MODU','mp2');
+  setInst('📍 Grafikte işaretlemek istediğin yere tıkla');
+  setMode('NOKTA EKLEME');
+}
+function cancelPin(){
+  pinMode=false;cw.style.cursor='crosshair';
+  setPill('pinPill','● HAZIR','mi2');
+  setMode('NAVIGATION');
+}
+function clearAllPins(){pins=[];updatePinList();render();}
+function removePin(i){pins.splice(i,1);updatePinList();render();}
+
+function addPin(px,py){
+  const rv=px2r(px,py);
+  if(!rv)return;
+  const color=document.getElementById('pinColor').value;
+  const symbol=document.getElementById('pinSymbol').value;
+  const label=document.getElementById('pinLabel').value.trim();
+  const showCoords=document.getElementById('pinShowCoords').checked;
+  const showLines=document.getElementById('pinShowLines').checked;
+  pins.push({px,py,vds:rv.vds,id:rv.id,color,symbol,label,showCoords,showLines});
+  updatePinList();
+  render();
+}
+
+function updatePinList(){
+  document.getElementById('pinList').innerHTML=pins.map((p,i)=>`
+    <div class="ci">
+      <div class="cdot" style="background:${p.color}"></div>
+      <span style="font-size:8px">${fmtV(p.vds)}V / ${fmtV(p.id)}A</span>
+      ${p.label?`<span style="color:var(--dim);font-size:7px">${p.label}</span>`:''}
+      <span class="x" onclick="removePin(${i})">✕</span>
+    </div>`).join('');
+}
+
+// ════ DRAW PINS ═════════════════════════════════════════════════
+function drawPins(){
+  if(!document.getElementById('chkPins').checked)return;
+  const lwP=gN('lwPin',1);
+  const fsP=gN('fsPin',10);
+  pins.forEach(p=>{
+    ctx.save();
+
+    // ── Axis dashed lines ──
+    if(p.showLines){
+      ctx.strokeStyle=p.color;ctx.lineWidth=lwP;ctx.globalAlpha=0.35;ctx.setLineDash([4,5]);
+      ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p.px,MC.height);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,p.py);ctx.lineTo(p.px,p.py);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.globalAlpha=1;
+    ctx.fillStyle=p.color;ctx.strokeStyle='#000';ctx.lineWidth=lwP;
+    ctx.shadowColor=p.color;ctx.shadowBlur=10;
+
+    if(p.symbol==='circle'){
+      ctx.beginPath();ctx.arc(p.px,p.py,6,0,2*Math.PI);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#fff';ctx.shadowBlur=0;
+      ctx.beginPath();ctx.arc(p.px,p.py,2,0,2*Math.PI);ctx.fill();
+    } else if(p.symbol==='cross'){
+      ctx.lineWidth=Math.max(1.5,lwP*1.5);ctx.strokeStyle=p.color;ctx.shadowBlur=8;
+      ctx.beginPath();ctx.moveTo(p.px-7,p.py-7);ctx.lineTo(p.px+7,p.py+7);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(p.px+7,p.py-7);ctx.lineTo(p.px-7,p.py+7);ctx.stroke();
+    } else if(p.symbol==='diamond'){
+      ctx.beginPath();ctx.moveTo(p.px,p.py-8);ctx.lineTo(p.px+6,p.py);ctx.lineTo(p.px,p.py+8);ctx.lineTo(p.px-6,p.py);ctx.closePath();
+      ctx.fill();ctx.stroke();
+    } else if(p.symbol==='arrow'){
+      ctx.beginPath();ctx.moveTo(p.px,p.py+2);ctx.lineTo(p.px-6,p.py-8);ctx.lineTo(p.px+6,p.py-8);ctx.closePath();
+      ctx.fill();ctx.stroke();
+    }
+
+    // ── Label box ──
+    if(p.showCoords){
+      ctx.shadowBlur=0;
+      const vStr=`Vds=${fmtV(p.vds)}V`;
+      const iStr=`IDS=${fmtV(p.id)}A`;
+      const pStr=`P=${fmtV(p.vds*p.id)}W`;
+      const extraLabel=p.label?`[${p.label}]`:'';
+      const lines=[vStr,iStr,pStr];
+      if(extraLabel)lines.unshift(extraLabel);
+
+      ctx.font=`bold ${fsP}px Share Tech Mono,monospace`;
+      const maxW=Math.max(...lines.map(l=>ctx.measureText(l).width));
+      const lineH=fsP+3;
+      const boxW=maxW+10;
+      const boxH=lines.length*lineH+6;
+
+      let bx=p.px+10, by=p.py-boxH-4;
+      if(bx+boxW>MC.width-5) bx=p.px-boxW-10;
+      if(by<5) by=p.py+14;
+
+      ctx.fillStyle='rgba(3,5,7,0.82)';
+      ctx.strokeStyle=p.color;ctx.lineWidth=lwP;
+      roundRect(ctx,bx-2,by-2,boxW+4,boxH+4,4);
+      ctx.fill();ctx.stroke();
+
+      lines.forEach((ln,idx)=>{
+        ctx.fillStyle=idx===0&&extraLabel?p.color:(idx===(extraLabel?1:0)?'#00d4ff':idx===(extraLabel?2:1)?'#ff6b35':'#aaffaa');
+        ctx.fillText(ln,bx+3,by+lineH*(idx+1)-2);
+      });
+
+      ctx.strokeStyle=p.color;ctx.lineWidth=lwP;ctx.globalAlpha=0.5;
+      ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(bx,by+boxH/2);ctx.stroke();
+    }
+    ctx.restore();
+  });
+}
+
+function roundRect(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);
+  c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();
+}
+
+// ════ ANNOTATION MODE ═══════════════════════════════════════════
+function startAnnot(){
+  if(!calibrated){alert('Kalibrasyonu tamamla!');return;}
+  annotMode=true;traceMode=false;pinMode=false;calMode=false;
+  cw.style.cursor='text';
+  setInst('✍️ Metin eklemek istediğin yere tıkla');
+  setMode('METİN EKLEME');
+}
+function cancelAnnot(){annotMode=false;cw.style.cursor='crosshair';setMode('NAVIGATION');}
+function removeAnnot(i){annotations.splice(i,1);updateAnnotList();render();}
+function updateAnnotList(){
+  document.getElementById('annotList').innerHTML=annotations.map((a,i)=>`
+    <div class="ci"><div class="cdot" style="background:${a.color}"></div>
+    <span style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.text}</span>
+    <span class="x" onclick="removeAnnot(${i})">✕</span></div>`).join('');
+}
+
+// ════ INTERP ════════════════════════════════════════════════════
+function calcInterp(){
+  const tpw1=parseFloat(document.getElementById('tpw1').value);
+  const ids1=parseFloat(document.getElementById('ids1').value);
+  const tpw2=parseFloat(document.getElementById('tpw2').value);
+  const ids2=parseFloat(document.getElementById('ids2').value);
+  if([tpw1,ids1,tpw2,ids2].some(v=>isNaN(v)||v<=0)){alert('Pozitif değer gir');return;}
+  const m=Math.log(ids1/ids2)/Math.log(tpw1/tpw2);
+  const a=ids1/Math.pow(tpw1,m);
+  interpParams={m,a};
+  document.getElementById('maBox').innerHTML=
+    `<span class="hi">m</span> = ${m.toFixed(4)}<br><span class="hi">a</span> = ${a.toFixed(4)}<br>`+
+    `<span style="color:var(--a3)">IDS(t) = ${a.toFixed(3)} × t^${m.toFixed(4)}</span>`;
+}
+function calcAllPWs(){
+  if(interpParams.m===null)calcInterp();
+  const{m,a}=interpParams;
+  const df=getDerFactor();
+  const tc=document.getElementById('tc').value;
+  const vds=parseFloat(document.getElementById('refVds').value)||12;
+  const pwList=document.getElementById('targetPWs').value.split(',').map(s=>parseFloat(s.trim())).filter(v=>!isNaN(v)&&v>0);
+  if(!pwList.length)return;
+  interpCurves=pwList.map((pw,i)=>({pw,ids25:a*Math.pow(pw,m),idsTc:(a*Math.pow(pw,m))*df,color:ICOLS[i%ICOLS.length]}));
+  const rows=interpCurves.map(c=>`
+    <div style="display:flex;justify-content:space-between;border-bottom:1px solid #1a2535;padding:2px 0">
+      <span style="color:${c.color}">${c.pw}ms</span>
+      <span style="color:#c8d8e8">${c.ids25.toFixed(3)}A</span>
+      <span style="color:#ff6b35">${c.idsTc.toFixed(3)}A @${tc}°C</span>
+    </div>`).join('');
+  document.getElementById('pwResultBox').innerHTML=`<div style="font-family:'Share Tech Mono',monospace;font-size:8px">
+    <div style="display:flex;justify-content:space-between;color:var(--dim);border-bottom:1px solid #1a2535;padding-bottom:2px;margin-bottom:2px"><span>tPW</span><span>@25°C</span><span>@${tc}°C</span></div>
+    ${rows}<div style="margin-top:4px;color:var(--dim)">VDS=${vds}V | DF=${df.toFixed(4)}</div></div>`;
+  render();
+}
+
+// ════ DERATING ══════════════════════════════════════════════════
+function getDerFactor(){
+  const tj=parseFloat(document.getElementById('tjMax').value)||150;
+  const tc=parseFloat(document.getElementById('tc').value)||100;
+  return Math.max(0,Math.min(1,(tj-tc)/(tj-25)));
+}
+function updateDer(){
+  const tj=parseFloat(document.getElementById('tjMax').value)||150;
+  const tc=parseFloat(document.getElementById('tc').value)||100;
+  const df=getDerFactor();
+  document.getElementById('derBox').innerHTML=`IDS(${tc}°C) = IDS(25°C) × (${tj}−${tc})/(${tj}−25)<br>DF = <span style="color:#fff;font-size:13px;font-weight:700">${df.toFixed(4)}</span>`;
+  document.getElementById('dbadge').textContent=`Tc=${tc}°C TJ=${tj}°C DF=${df.toFixed(4)}`;
+}
+['tjMax','tc'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{updateDer();render();}));
+
+// ════ TRACE ═════════════════════════════════════════════════════
+function startTrace(){
+  if(!calibrated){alert('Önce kalibrasyonu tamamla!');return;}
+  traceMode=true;annotMode=false;pinMode=false;calMode=false;curPts=[];
+  cw.style.cursor='crosshair';
+  document.getElementById('trcSt').textContent='0 nokta';
+  setPill('tracePill','● İŞARETLEME','mt2');
+  setInst('✏️ Eğri noktalarını tıkla → Tamamla');
+  setMode('EĞRİ İŞARETLEME');
+}
+function finishTrace(){
+  if(curPts.length<2){alert('En az 2 nokta');return;}
+  const name=document.getElementById('trName').value||('c'+(savedTraces.length+1));
+  const color=document.getElementById('trColor').value;
+  const pts=curPts.map(p=>px2r(p.px,p.py)).filter(Boolean);
+  pts.sort((a,b)=>a.vds-b.vds);
+  savedTraces.push({name,color,pts});
+  traceMode=false;curPts=[];cw.style.cursor='crosshair';
+  updateTrList();drawOvl();render();
+  setPill('tracePill','● HAZIR','mi2');
+  document.getElementById('trcSt').textContent='0 nokta';
+  setInst('✓ Kaydedildi');
+  setMode('NAVIGATION');
+}
+function cancelTrace(){traceMode=false;curPts=[];cw.style.cursor='crosshair';drawOvl();setPill('tracePill','● HAZIR','mi2');document.getElementById('trcSt').textContent='0 nokta';setMode('NAVIGATION');}
+function removeTrace(i){savedTraces.splice(i,1);updateTrList();render();}
+function updateTrList(){
+  document.getElementById('traceList').innerHTML=savedTraces.map((t,i)=>`
+    <div class="ci"><div class="cdot" style="background:${t.color}"></div><span>${t.name}</span>
+    <span style="margin-left:auto;font-size:7px;color:var(--dim)">${t.pts.length}pt</span>
+    <span class="x" onclick="removeTrace(${i})">✕</span></div>`).join('');
+}
+
+// ════ CANVAS CLICK ═══════════════════════════════════════════════
+MC.addEventListener('click',e=>{
+  const r=MC.getBoundingClientRect();
+  const px=(e.clientX-r.left)*(MC.width/r.width);
+  const py=(e.clientY-r.top)*(MC.height/r.height);
+
+  if(calMode){
+    openM(`📍 ${calStep+1}/4: ${CAL_LABS[calStep]}`,'Gerçek Vds ve Id:','Vds (V)','Id (A)',
+      CAL_DEFS[calStep][0],CAL_DEFS[calStep][1],
+      (v1,v2)=>{
+        calPts.push({px,py,vds:v1,id:v2});updateCalUI();drawOvl();
+        if(calPts.length===4){computeCalT();calibrated=true;calMode=false;cw.style.cursor='crosshair';
+          setPill('calPill','✓ KALİBRE','mi2');setInst('✓ Kalibrasyon tamam');setSt('Kalibre edildi','ok');setMode('NAVIGATION');}
+        else{calStep++;updateCalUI();setInst('⬆ '+CAL_LABS[calStep]);}
+        render();
+      });
+    return;
+  }
+  if(traceMode){curPts.push({px,py});document.getElementById('trcSt').textContent=curPts.length+' nokta';drawOvl();return;}
+  if(pinMode){addPin(px,py);return;}
+  if(annotMode){
+    const text=document.getElementById('annotText').value.trim();
+    if(!text){alert('Önce metin gir');return;}
+    annotations.push({
+      px,py,text,
+      color:document.getElementById('annotColor').value,
+      size:parseInt(document.getElementById('annotSize').value)||12,
+      angle:parseFloat(document.getElementById('annotAngle').value)||0,
+      box:document.getElementById('annotBox').checked
+    });
+    updateAnnotList();render();
+    return;
+  }
+});
+
+// ════ MOUSE MOVE ════════════════════════════════════════════════
+MC.addEventListener('mousemove',e=>{
+  const r=MC.getBoundingClientRect();
+  mouseX=(e.clientX-r.left)*(MC.width/r.width);
+  mouseY=(e.clientY-r.top)*(MC.height/r.height);
+
+  if(calibrated){
+    const rv=px2r(mouseX,mouseY);
+    if(rv){
+      document.getElementById('csVds').textContent=fmtV(rv.vds)+' V';
+      document.getElementById('csIds').textContent=fmtV(rv.id)+' A';
+      document.getElementById('csPwr').textContent=fmtV(rv.vds*rv.id)+' W';
+    }
+  }
+  drawCursorCvs(mouseX,mouseY,true);
+});
+MC.addEventListener('mouseleave',()=>{
+  document.getElementById('csVds').textContent='— V';
+  document.getElementById('csIds').textContent='— A';
+  document.getElementById('csPwr').textContent='— W';
+  drawCursorCvs(0,0,false);
+});
+
+function fmtV(v){
+  if(v===undefined||v===null||isNaN(v))return '—';
+  if(Math.abs(v)>=1000)return v.toFixed(0);
+  if(Math.abs(v)>=100)return v.toFixed(1);
+  if(Math.abs(v)>=10)return v.toFixed(2);
+  if(Math.abs(v)>=1)return v.toFixed(3);
+  if(Math.abs(v)>=0.01)return v.toFixed(4);
+  return v.toExponential(2);
+}
+
+// ════ CURSOR CANVAS ══════════════════════════════════════════════
+function drawCursorCvs(x,y,visible){
+  cur.clearRect(0,0,CC.width,CC.height);
+  if(!visible||!document.getElementById('chkCross').checked)return;
+  const lwC=gN('lwCross',1);
+  const fsC=gN('fsCross',10);
+  cur.save();
+  cur.strokeStyle='rgba(0,212,255,0.45)';cur.lineWidth=lwC;cur.setLineDash([4,5]);
+  cur.beginPath();cur.moveTo(x,0);cur.lineTo(x,CC.height);cur.stroke();
+  cur.beginPath();cur.moveTo(0,y);cur.lineTo(CC.width,y);cur.stroke();
+  cur.setLineDash([]);
+  cur.fillStyle='rgba(0,212,255,0.9)';
+  cur.beginPath();cur.arc(x,y,Math.max(2,lwC+1),0,2*Math.PI);cur.fill();
+  if(calibrated){
+    const rv=px2r(x,y);
+    if(rv){
+      cur.font=`bold ${fsC}px Share Tech Mono,monospace`;
+      const vStr=fmtV(rv.vds)+'V';
+      const tw1=cur.measureText(vStr).width;
+      const lh=fsC+4;
+      cur.fillStyle='rgba(0,0,0,0.65)';cur.fillRect(x-tw1/2-3,CC.height-lh-5,tw1+6,lh);
+      cur.fillStyle='rgba(0,212,255,1)';cur.fillText(vStr,x-tw1/2,CC.height-7);
+      const iStr=fmtV(rv.id)+'A';
+      const tw2=cur.measureText(iStr).width;
+      cur.fillStyle='rgba(0,0,0,0.65)';cur.fillRect(2,y-lh,tw2+6,lh);
+      cur.fillStyle='rgba(0,212,255,1)';cur.fillText(iStr,5,y-3);
+    }
+  }
+  cur.restore();
+}
+
+// ════ GRID ══════════════════════════════════════════════════════
+function drawGrid(){
+  if(!calibrated||!document.getElementById('chkGrid').checked)return;
+  const vdsMin=Math.min(...calPts.map(p=>p.vds));
+  const vdsMax=Math.max(...calPts.map(p=>p.vds));
+  const idMin =Math.min(...calPts.map(p=>p.id));
+  const idMax =Math.max(...calPts.map(p=>p.id));
+
+  // ── Style params ──
+  const lwMajor  = gN('lwGridMajor',1);
+  const lwMinor  = gN('lwGridMinor',0.5);
+  const fs       = gN('fsGrid',10);
+  const gcol     = gC('gridColor');         // hex e.g. #64aad2
+  const gop      = gN('gridOpacity',90)/100;
+  // Parse hex to rgb for rgba
+  const gr=parseInt(gcol.slice(1,3),16), gg=parseInt(gcol.slice(3,5),16), gb=parseInt(gcol.slice(5,7),16);
+
+  ctx.save();
+
+  for(let d=Math.floor(Math.log10(vdsMin));d<=Math.ceil(Math.log10(vdsMax));d++){
+    for(let m=1;m<=9;m++){
+      const v=m*Math.pow(10,d);if(v<vdsMin*.999||v>vdsMax*1.001)continue;
+      const p=r2px(v,idMin),p2=r2px(v,idMax);if(!p||!p2)continue;
+      const major=m===1;
+      ctx.strokeStyle=`rgba(${gr},${gg},${gb},${major?gop*0.85:gop*0.28})`;
+      ctx.lineWidth=major?lwMajor:lwMinor;
+      ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p2.px,p2.py);ctx.stroke();
+      if(major){
+        const label=v<1?v.toFixed(2):(v>=1000?(v/1000)+'k':String(v));
+        ctx.font=`bold ${fs}px Share Tech Mono,monospace`;ctx.textAlign='center';
+        const tw=ctx.measureText(label).width;
+        const lh=fs+4;
+        ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(p.px-tw/2-2,p.py+4,tw+4,lh);
+        ctx.fillStyle=`rgba(${gr},${gg},${gb},${gop})`;ctx.fillText(label,p.px,p.py+lh-1);
+      }
+    }
+  }
+  for(let d=Math.floor(Math.log10(idMin));d<=Math.ceil(Math.log10(idMax));d++){
+    for(let m=1;m<=9;m++){
+      const id=m*Math.pow(10,d);if(id<idMin*.999||id>idMax*1.001)continue;
+      const p=r2px(vdsMin,id),p2=r2px(vdsMax,id);if(!p||!p2)continue;
+      const major=m===1;
+      ctx.strokeStyle=`rgba(${gr},${gg},${gb},${major?gop*0.85:gop*0.28})`;
+      ctx.lineWidth=major?lwMajor:lwMinor;
+      ctx.beginPath();ctx.moveTo(p.px,p.py);ctx.lineTo(p2.px,p2.py);ctx.stroke();
+      if(major){
+        const label=id<0.01?id.toFixed(3):(id<1?id.toFixed(2):(id>=1000?(id/1000)+'k':String(id)));
+        ctx.font=`bold ${fs}px Share Tech Mono,monospace`;ctx.textAlign='right';
+        const tw=ctx.measureText(label).width;
+        const lh=fs+4;
+        ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(p.px-tw-9,p.py-lh+2,tw+6,lh);
+        ctx.fillStyle=`rgba(${gr},${gg},${gb},${gop})`;ctx.fillText(label,p.px-6,p.py);
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// ════ OVERLAY ═══════════════════════════════════════════════════
+function drawOvl(){
+  ovl.clearRect(0,0,OC.width,OC.height);
+  calPts.forEach((p,i)=>{
+    ovl.save();ovl.strokeStyle=CAL_COLS[i];ovl.lineWidth=1;ovl.globalAlpha=0.4;ovl.setLineDash([4,4]);
+    ovl.beginPath();ovl.moveTo(p.px,0);ovl.lineTo(p.px,OC.height);ovl.stroke();
+    ovl.beginPath();ovl.moveTo(0,p.py);ovl.lineTo(OC.width,p.py);ovl.stroke();
+    ovl.setLineDash([]);ovl.globalAlpha=1;
+    ovl.beginPath();ovl.arc(p.px,p.py,6,0,2*Math.PI);ovl.stroke();
+    ovl.fillStyle=CAL_COLS[i];ovl.font='bold 10px Share Tech Mono,monospace';
+    ovl.fillText('P'+(i+1),p.px+8,p.py-4);
+    ovl.restore();
+  });
+  if(traceMode&&curPts.length){
+    const col=document.getElementById('trColor').value;
+    ovl.save();ovl.strokeStyle=col;ovl.fillStyle=col;ovl.lineWidth=1.5;ovl.globalAlpha=0.85;ovl.setLineDash([3,3]);
+    ovl.beginPath();curPts.forEach((p,i)=>{if(i===0)ovl.moveTo(p.px,p.py);else ovl.lineTo(p.px,p.py);});
+    ovl.stroke();ovl.setLineDash([]);
+    curPts.forEach(p=>{ovl.beginPath();ovl.arc(p.px,p.py,4,0,2*Math.PI);ovl.fill();});
+    ovl.restore();
+  }
+}
+
+// ════ DRAW CURVES ════════════════════════════════════════════════
+function drawCurve(pts,color,lw,dash,alpha){
+  if(!pts||!pts.length)return;
+  const glow=gN('curveGlow',7);
+  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.globalAlpha=alpha;
+  ctx.shadowColor=color;ctx.shadowBlur=glow;ctx.setLineDash(dash||[]);
+  ctx.beginPath();let first=true;
+  pts.forEach(p=>{if(!p)return;if(first){ctx.moveTo(p.px,p.py);first=false;}else ctx.lineTo(p.px,p.py);});
+  ctx.stroke();ctx.restore();
+}
+
+// ════ ANNOTATIONS ════════════════════════════════════════════════
+function drawAnnotations(){
+  if(!document.getElementById('chkAnnot').checked)return;
+  annotations.forEach(a=>{
+    ctx.save();ctx.translate(a.px,a.py);
+    if(a.angle)ctx.rotate(a.angle*Math.PI/180);
+    ctx.font=`bold ${a.size}px Share Tech Mono,monospace`;ctx.textAlign='left';
+    const tw=ctx.measureText(a.text).width;
+    if(a.box){ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(-3,-a.size,tw+6,a.size+4);}
+    ctx.fillStyle=a.color;ctx.shadowColor=a.color;ctx.shadowBlur=5;
+    ctx.fillText(a.text,0,0);ctx.restore();
+  });
+}
+
+// ════ RENDER ════════════════════════════════════════════════════
+function render(){
+  const W=MC.width,H=MC.height;
+  if(!W||!H)return;
+  ctx.fillStyle='#030507';ctx.fillRect(0,0,W,H);
+
+  if(img&&document.getElementById('chkImg').checked){
+    const op=parseFloat(document.getElementById('imgOp').value)/100;
+    ctx.save();ctx.globalAlpha=op;ctx.drawImage(img,0,0,W,H);ctx.restore();
+  }
+
+  drawGrid();
+
+  const df=getDerFactor();
+  const tc=document.getElementById('tc').value;
+  const showRef=document.getElementById('chkRef').checked;
+  const showDer=document.getElementById('chkDer').checked;
+  const showInterp=document.getElementById('chkInterp').checked;
+  const legLines=[];
+
+  savedTraces.forEach(t=>{
+    if(showRef&&viewMode!=='der'){
+      drawCurve(t.pts.map(p=>r2px(p.vds,p.id)),t.color,gN('lwRef',2.5),null,1);
+      legLines.push(`<div class="li"><div style="width:16px;height:2px;background:${t.color};box-shadow:0 0 4px ${t.color}"></div><span style="color:#c8d8e8">${t.name}</span></div>`);
+    }
+    if(showDer&&viewMode!=='ref'){
+      drawCurve(t.pts.map(p=>r2px(p.vds,p.id*df)),t.color,gN('lwDer',2),[8,5],0.85);
+      legLines.push(`<div class="li"><div style="width:16px;height:0;border-top:2px dashed ${t.color};opacity:.7"></div><span style="color:var(--dim)">${t.name} @${tc}°C</span></div>`);
+    }
+  });
+
+  if(showInterp&&interpCurves.length&&calibrated){
+    const vdsMin=Math.min(...calPts.map(p=>p.vds));
+    const vdsMax=Math.max(...calPts.map(p=>p.vds));
+    const lwI=gN('lwInterp',1);
+    const fsI=gN('fsInterp',9);
+    legLines.push(`<div style="font-size:7px;color:var(--dim);margin-top:3px;letter-spacing:2px">POWER-LAW</div>`);
+    interpCurves.forEach(c=>{
+      if(showRef&&viewMode!=='der'){
+        const pL=r2px(vdsMin,c.ids25),pR=r2px(vdsMax,c.ids25);
+        if(pL&&pR){ctx.save();ctx.strokeStyle=c.color;ctx.lineWidth=lwI;ctx.globalAlpha=0.5;ctx.setLineDash([3,7]);ctx.beginPath();ctx.moveTo(pL.px,pL.py);ctx.lineTo(pR.px,pR.py);ctx.stroke();ctx.restore();}
+        const vds=parseFloat(document.getElementById('refVds').value)||12;
+        const p=r2px(vds,c.ids25);
+        if(p){ctx.save();ctx.fillStyle=c.color;ctx.shadowColor=c.color;ctx.shadowBlur=6;ctx.beginPath();ctx.arc(p.px,p.py,4,0,2*Math.PI);ctx.fill();ctx.font=`bold ${fsI}px Share Tech Mono,monospace`;ctx.fillStyle=c.color;ctx.fillText(`${c.pw}ms: ${c.ids25.toFixed(2)}A`,p.px+7,p.py-3);ctx.restore();}
+        legLines.push(`<div class="li"><div style="width:14px;height:1px;background:${c.color};opacity:.8"></div><span style="color:${c.color}">${c.pw}ms=${c.ids25.toFixed(2)}A</span></div>`);
+      }
+      if(showDer&&viewMode!=='ref'){
+        const pL=r2px(vdsMin,c.idsTc),pR=r2px(vdsMax,c.idsTc);
+        if(pL&&pR){ctx.save();ctx.strokeStyle=c.color;ctx.lineWidth=lwI;ctx.globalAlpha=0.4;ctx.setLineDash([2,9]);ctx.beginPath();ctx.moveTo(pL.px,pL.py);ctx.lineTo(pR.px,pR.py);ctx.stroke();ctx.restore();}
+        legLines.push(`<div class="li"><div style="width:14px;height:0;border-top:1px dashed ${c.color};opacity:.5"></div><span style="color:${c.color};opacity:.7">${c.pw}ms@${tc}°C=${c.idsTc.toFixed(2)}A</span></div>`);
+      }
+    });
+  }
+
+  // Pins drawn after curves, before annotations
+  drawPins();
+  drawAnnotations();
+
+  document.getElementById('legItems').innerHTML=`<div style="font-size:7px;color:var(--dim);letter-spacing:2px;margin-bottom:3px">EĞRELER</div>`+legLines.join('');
+  drawOvl();
+  updateDer();
+
+  if(savedTraces.length||interpCurves.length||pins.length)setSt('Grafik hazır ✓','ok');
+  else if(calibrated)setSt('Eğri/Nokta ekle','warn');
+  else if(img)setSt('Kalibre et','warn');
+  else setSt('Görsel yükle','warn');
+}
+
+// ════ MODAL ═════════════════════════════════════════════════════
+function openM(title,desc,l1,l2,d1,d2,cb){
+  document.getElementById('mT').textContent=title;document.getElementById('mD').textContent=desc;
+  document.getElementById('mL1').textContent=l1;document.getElementById('mL2').textContent=l2;
+  document.getElementById('mV1').value=d1;document.getElementById('mV2').value=d2;
+  modalCb=cb;document.getElementById('modal').style.display='flex';
+  setTimeout(()=>document.getElementById('mV1').focus(),50);
+}
+function confirmM(){
+  const v1=parseFloat(document.getElementById('mV1').value);
+  const v2=parseFloat(document.getElementById('mV2').value);
+  if(isNaN(v1)||isNaN(v2)||v1<=0||v2<=0){alert('Pozitif değer gir');return;}
+  document.getElementById('modal').style.display='none';
+  if(modalCb)modalCb(v1,v2);
+}
+function closeM(){document.getElementById('modal').style.display='none';}
+document.getElementById('modal').addEventListener('keydown',e=>{if(e.key==='Enter')confirmM();});
+
+// ════ HELPERS ════════════════════════════════════════════════════
+function setView(m){viewMode=m;document.querySelectorAll('.tgb').forEach((b,i)=>b.classList.toggle('on',['both','ref','der'][i]===m));render();}
+function setSt(msg,type){const el=document.getElementById('stPill');el.textContent='● '+msg;el.style.borderColor=type==='ok'?'var(--a3)':'var(--a2)';el.style.color=type==='ok'?'var(--a3)':'var(--a2)';}
+function setPill(id,txt,cls){const el=document.getElementById(id);el.textContent=txt;el.className='mode-pill '+cls;}
+function setInst(t){document.getElementById('instruct').textContent=t;}
+function setMode(m){document.getElementById('csMode').textContent=m;}
+
+['chkImg','imgOp','chkRef','chkDer','chkInterp','chkGrid','chkPins','chkAnnot','chkCross'].forEach(id=>{
+  const el=document.getElementById(id);if(el)el.addEventListener('input',()=>render());
+});
+
+// Live update for style sliders/color pickers
+['lwRef','lwDer','lwInterp','lwGridMajor','lwGridMinor','lwPin','lwCross','curveGlow',
+ 'fsGrid','fsPin','fsInterp','fsCross','gridColor','gridOpacity'].forEach(id=>{
+  const el=document.getElementById(id);if(el)el.addEventListener('input',()=>render());
+});
+
+function downloadPNG(){
+  render();
+  const out=document.createElement('canvas');out.width=MC.width;out.height=MC.height;
+  const oc=out.getContext('2d');oc.drawImage(MC,0,0);
+  const a=document.createElement('a');a.download=`mosfet_soa_${Date.now()}.png`;a.href=out.toDataURL('image/png');a.click();
+}
+
+window.addEventListener('load',()=>{resize();updateDer();});
+setInterval(()=>{document.getElementById('ts').textContent=new Date().toLocaleTimeString('tr-TR');},1000);
+</script>
+</body>
+</html>
